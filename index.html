@@ -5,49 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pixel Finance OS</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* === GLOBAL SETTINGS === */
         * { box-sizing: border-box; }
         body {
-            background-color: #008080; /* Classic Teal Desktop */
+            background-color: #008080;
             font-family: 'VT323', monospace;
             margin: 0;
             padding: 0;
             height: 100vh;
             overflow: hidden;
             color: #000;
-            user-select: none; /* Biar teks ga gampang ke-blok pas nge-drag */
+            user-select: none;
         }
 
         /* === DESKTOP & ICONS === */
-        .desktop {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            height: calc(100vh - 40px);
-        }
-        .icon {
-            width: 80px;
-            text-align: center;
-            color: white;
-            cursor: pointer;
-            font-size: 1.2rem;
-            text-shadow: 1px 1px 0 #000;
-        }
-        .icon-img {
-            width: 50px;
-            height: 50px;
-            margin: 0 auto 5px auto;
-            font-size: 35px;
-            line-height: 50px;
-            transition: transform 0.1s;
-        }
+        .desktop { padding: 20px; display: flex; flex-direction: column; gap: 25px; height: calc(100vh - 40px); }
+        .icon { width: 85px; text-align: center; color: white; cursor: pointer; font-size: 1.2rem; text-shadow: 1px 1px 0 #000; }
+        .icon-img { width: 50px; height: 50px; margin: 0 auto 5px auto; font-size: 35px; line-height: 50px; transition: transform 0.1s; }
         .icon:active .icon-img { transform: scale(0.9); }
-        .icon-label {
-            background: transparent;
-            padding: 2px 4px;
-        }
+        .icon-label { background: transparent; padding: 2px 4px; }
         .icon:hover .icon-label { background: #000080; border: 1px dotted #fff; }
 
         /* === RETRO WINDOW UI === */
@@ -57,9 +35,9 @@
             border-color: #dfdfdf #000 #000 #dfdfdf;
             box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
             position: absolute;
-            top: 20%;
+            top: 10%;
             left: 30%;
-            width: 380px;
+            width: 400px;
             display: none;
             z-index: 10;
         }
@@ -90,123 +68,88 @@
         .window-content { padding: 15px; font-size: 1.2rem; }
 
         /* === FORMS & INPUTS === */
-        .form-group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 4px; }
-        input, select, button {
-            font-family: 'VT323', monospace;
-            font-size: 1.2rem;
-            width: 100%;
-        }
-        input[type="text"], input[type="number"], select {
+        .form-group { margin-bottom: 10px; }
+        .form-row { display: flex; gap: 10px; } /* Untuk sebaris Tanggal & Jam */
+        .form-row .form-group { flex: 1; }
+        label { display: block; margin-bottom: 2px; }
+        input, select, button { font-family: 'VT323', monospace; font-size: 1.2rem; width: 100%; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="time"], select {
             border: 2px inset #fff;
             padding: 6px;
             background: #fff;
             outline: none;
         }
-        .btn {
-            background: #c0c0c0;
-            border: 2px outset #fff;
-            padding: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 1.3rem;
-        }
+        .btn { background: #c0c0c0; border: 2px outset #fff; padding: 8px; cursor: pointer; margin-top: 10px; font-size: 1.3rem; }
         .btn:active { border: 2px inset #fff; }
-        .btn-danger { color: #800000; font-weight: bold; }
+        
+        .preview-box { width: 100%; height: 70px; border: 2px inset #fff; background: #000; margin-top: 5px; display: flex; align-items: center; justify-content: center; color: #00ff00; overflow: hidden; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(150%); image-rendering: pixelated; }
 
-        /* Image Preview Box */
-        .preview-box {
-            width: 100%;
-            height: 80px;
-            border: 2px inset #fff;
-            background: #000;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #00ff00;
-            overflow: hidden;
-        }
-        .preview-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(100%) contrast(150%);
-            image-rendering: pixelated;
-        }
-
-        /* === RECEIPT (STRUK KASIR) === */
-        #receipt-window { width: 420px; }
+        /* === RECEIPT (STRUK KASIR YANG DIRAPIHKAN) === */
+        #receipt-window { width: 450px; left: 40%; }
+        
+        /* Area ini yang akan diubah jadi PDF */
         .receipt-paper {
             background: #fff;
-            border: 1px solid #888;
-            padding: 15px;
+            padding: 20px;
             max-height: 400px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.95rem;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            color: #000;
+            border: 1px solid #888;
         }
         .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 2px dashed #000; padding-bottom: 10px; }
+        
+        /* Layout Grid supaya rapi banget */
         .receipt-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 5px;
             margin-bottom: 15px;
-            border-bottom: 1px dotted #ccc;
+            border-bottom: 1px dotted #888;
             padding-bottom: 10px;
             position: relative;
         }
-        .receipt-item img {
-            max-width: 100%;
-            margin-top: 8px;
+        .item-details { display: flex; flex-direction: column; gap: 3px; }
+        .item-date { font-size: 0.85rem; color: #555; }
+        .item-desc { font-weight: bold; }
+        .item-amount { font-size: 1.1rem; }
+        .item-img-container { width: 80px; text-align: right; }
+        .item-img-container img {
+            width: 100%;
+            border: 1px solid #000;
             filter: grayscale(100%) contrast(150%);
             image-rendering: pixelated;
-            border: 1px solid #000;
         }
+
         .delete-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: #fff;
-            border: 1px solid #000;
+            background: transparent;
+            border: none;
+            color: red;
             cursor: pointer;
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
+            text-align: left;
+            padding: 0;
+            margin-top: 5px;
+            text-decoration: underline;
         }
-        .delete-btn:hover { background: #000; color: #fff; }
-        .total-row { font-weight: bold; font-size: 1.2rem; text-align: right; margin-top: 10px; border-top: 2px dashed #000; padding-top: 10px;}
+        .delete-btn:hover { color: darkred; }
+
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem; margin-top: 15px; border-top: 2px dashed #000; padding-top: 10px;}
+        
+        /* Tombol Aksi di bawah struk */
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-pdf { background: #000080; color: #fff; }
+        .btn-pdf:active { border-color: #000; }
+        .btn-danger { color: #800000; font-weight: bold; }
 
         /* === TASKBAR === */
-        .taskbar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 40px;
-            background: #c0c0c0;
-            border-top: 2px outset #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 5px;
-            z-index: 100;
-        }
-        .start-btn {
-            background: #c0c0c0;
-            border: 2px outset #fff;
-            padding: 4px 10px;
-            font-family: 'VT323', monospace;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .taskbar { position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: #c0c0c0; border-top: 2px outset #fff; display: flex; justify-content: space-between; align-items: center; padding: 0 5px; z-index: 100; }
+        .start-btn { background: #c0c0c0; border: 2px outset #fff; padding: 4px 10px; font-family: 'VT323', monospace; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .start-btn:active { border: 2px inset #fff; }
-        .clock {
-            border: 2px inset #fff;
-            padding: 4px 10px;
-            font-size: 1.2rem;
-        }
+        .clock { border: 2px inset #fff; padding: 4px 10px; font-size: 1.2rem; background: #fff;}
     </style>
 </head>
 <body>
@@ -222,7 +165,7 @@
         </div>
         <div class="icon" onclick="formatDisket()">
             <div class="icon-img">🗑️</div>
-            <span class="icon-label">Format_Disk</span>
+            <span class="icon-label">Format_C</span>
         </div>
     </div>
 
@@ -233,6 +176,17 @@
         </div>
         <div class="window-content">
             <form id="finance-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tanggal:</label>
+                        <input type="date" id="tx-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam:</label>
+                        <input type="time" id="tx-time" required>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Tipe Transaksi:</label>
                     <select id="type">
@@ -253,7 +207,7 @@
                     <input type="file" id="proof" accept="image/*" onchange="previewImage(event)">
                     <div class="preview-box" id="preview-box">NO SIGNAL</div>
                 </div>
-                <button type="submit" class="btn">Write to Disk >></button>
+                <button type="submit" class="btn">Simpan Data >></button>
             </form>
         </div>
     </div>
@@ -264,9 +218,15 @@
             <button class="title-bar-btn" onclick="closeWindow('receipt-window')">X</button>
         </div>
         <div class="window-content">
+            
             <div class="receipt-paper" id="receipt-paper">
                 </div>
-            <button class="btn btn-danger" onclick="formatDisket()">Hapus Semua Data</button>
+
+            <div class="action-buttons">
+                <button class="btn btn-pdf" onclick="downloadPDF()">📥 Download PDF</button>
+                <button class="btn btn-danger" onclick="formatDisket()">🗑️ Hapus Semua</button>
+            </div>
+
         </div>
     </div>
 
@@ -276,27 +236,38 @@
     </div>
 
     <script>
-        // Database Lokal Sementara
         let transactions = JSON.parse(localStorage.getItem('pixelFinanceData')) || [];
         let draggedWindow = null;
-
-        // 1. Fungsi Buka Tutup Jendela (dengan efek Z-index agar yang diklik pindah ke depan)
         let zIndexCounter = 10;
+
+        // Set Default Date & Time ke Waktu Sekarang saat Web Dibuka
+        function setCurrentDateTime() {
+            const now = new Date();
+            // Format YYYY-MM-DD untuk input type="date"
+            const dateString = now.toISOString().split('T')[0];
+            // Format HH:MM untuk input type="time"
+            const timeString = now.toTimeString().split(' ')[0].substring(0,5);
+            
+            document.getElementById('tx-date').value = dateString;
+            document.getElementById('tx-time').value = timeString;
+        }
+        setCurrentDateTime(); // Panggil saat pertama kali load
+
+        // Fungsi Buka Tutup Jendela
         function openWindow(id) { 
             const win = document.getElementById(id);
             win.style.display = 'block'; 
             win.style.zIndex = ++zIndexCounter;
+            if(id === 'input-window') setCurrentDateTime(); // Update jam tiap buka form input
         }
         function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
 
-        // 2. Fitur Drag Jendela
+        // Fitur Drag Jendela
         function dragWindow(e, windowId) {
             draggedWindow = document.getElementById(windowId);
             draggedWindow.style.zIndex = ++zIndexCounter;
-            
             let offsetX = e.clientX - draggedWindow.getBoundingClientRect().left;
             let offsetY = e.clientY - draggedWindow.getBoundingClientRect().top;
-
             function mouseMoveHandler(e) {
                 draggedWindow.style.left = (e.clientX - offsetX) + 'px';
                 draggedWindow.style.top = (e.clientY - offsetY) + 'px';
@@ -309,7 +280,7 @@
             document.addEventListener('mouseup', mouseUpHandler);
         }
 
-        // 3. Preview Gambar Bukti Transaksi
+        // Preview Gambar
         let currentImageBase64 = '';
         function previewImage(event) {
             const file = event.target.files[0];
@@ -327,18 +298,19 @@
             }
         }
 
-        // 4. Submit Form Data
+        // Submit Form Data
         document.getElementById('finance-form').addEventListener('submit', function(e) {
             e.preventDefault();
+            const txDate = document.getElementById('tx-date').value; // Ambil dari input kalender
+            const txTime = document.getElementById('tx-time').value; // Ambil dari input jam
             const type = document.getElementById('type').value;
             const desc = document.getElementById('desc').value;
             const amount = parseInt(document.getElementById('amount').value);
-            const now = new Date();
 
             const newTx = {
-                id: Date.now(), // ID unik untuk fitur hapus
-                date: now.toLocaleDateString('id-ID'),
-                time: now.toLocaleTimeString('id-ID'),
+                id: Date.now(),
+                date: txDate,
+                time: txTime,
                 type: type,
                 desc: desc,
                 amount: amount,
@@ -346,87 +318,115 @@
             };
 
             transactions.push(newTx);
+            
+            // Urutkan transaksi berdasarkan tanggal dan jam (terlama ke terbaru)
+            transactions.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
+            
             saveData();
             
-            alert('Data tertulis ke disket!');
+            alert('Data berhasil disimpan!');
             document.getElementById('finance-form').reset();
             document.getElementById('preview-box').innerHTML = "NO SIGNAL";
             currentImageBase64 = '';
+            setCurrentDateTime(); // Reset jam ke waktu terbaru
             
-            // Render ulang struk kalau jendelanya lagi kebuka
             if(document.getElementById('receipt-window').style.display === 'block') {
                 renderReceipt();
             }
         });
 
-        // 5. Render Struk (Cetak Struk)
+        // Render Struk (Grid System biar rapi)
         function renderReceipt() {
             const paper = document.getElementById('receipt-paper');
             let html = `
                 <div class="receipt-header">
                     <h2>=== PIXEL FINANCE ===</h2>
-                    <p>SYSTEM REKAP v2.0</p>
+                    <p>SYSTEM REKAP MINGGUAN</p>
                 </div>
             `;
 
             let saldo = 0;
 
             if (transactions.length === 0) {
-                html += `<div style="text-align:center; padding: 20px 0;">[ DISKET KOSONG ]</div>`;
+                html += `<div style="text-align:center; padding: 20px 0;">[ DATA KOSONG ]</div>`;
             } else {
-                transactions.forEach((tx, index) => {
+                transactions.forEach((tx) => {
                     const isIncome = tx.type === 'pemasukan';
                     saldo += isIncome ? tx.amount : -tx.amount;
                     const sign = isIncome ? '+' : '-';
+                    const color = isIncome ? 'green' : 'black';
                     
                     html += `
                         <div class="receipt-item">
-                            <button class="delete-btn" onclick="deleteItem(${tx.id})" title="Hapus Transaksi Ini">X</button>
-                            <div>TGL: ${tx.date} | ${tx.time}</div>
-                            <div>KET: ${tx.desc}</div>
-                            <div>NOM: ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
-                            ${tx.proof ? `<img src="${tx.proof}" alt="Bukti">` : ''}
+                            <div class="item-details">
+                                <span class="item-date">📅 ${tx.date} ⏰ ${tx.time}</span>
+                                <span class="item-desc">${tx.desc}</span>
+                                <span class="item-amount" style="color:${color};">${sign} Rp ${tx.amount.toLocaleString('id-ID')}</span>
+                                <button class="delete-btn" onclick="deleteItem(${tx.id})" data-html2canvas-ignore="true">[x] Hapus Item</button>
+                            </div>
+                            <div class="item-img-container">
+                                ${tx.proof ? `<img src="${tx.proof}" alt="Bukti">` : '<span style="font-size:10px;">No IMG</span>'}
+                            </div>
                         </div>
                     `;
                 });
             }
 
             html += `
-                <div class="total-row">SALDO AKHIR: Rp ${saldo.toLocaleString('id-ID')}</div>
-                <div style="text-align:center; margin-top:20px;">*** END OF RECORD ***</div>
+                <div class="total-row">
+                    <span>SALDO AKHIR:</span>
+                    <span>Rp ${saldo.toLocaleString('id-ID')}</span>
+                </div>
+                <div style="text-align:center; margin-top:20px; font-size:0.8rem;">*** END OF RECORD ***</div>
             `;
             paper.innerHTML = html;
         }
 
-        // 6. Fitur Hapus Per Item
+        // Hapus Per Item
         function deleteItem(id) {
-            if(confirm('Hapus transaksi ini dari sistem?')) {
+            if(confirm('Hapus transaksi ini?')) {
                 transactions = transactions.filter(tx => tx.id !== id);
                 saveData();
                 renderReceipt();
             }
         }
 
-        // 7. Fitur Format Disket (Hapus Semua)
+        // Hapus Semua
         function formatDisket() {
-            if(transactions.length === 0) {
-                alert('Disket sudah kosong!');
-                return;
-            }
-            if(confirm('WARNING: Format Disket? Semua data keuangan minggu ini akan hilang permanen!')) {
+            if(transactions.length === 0) return alert('Data sudah kosong!');
+            if(confirm('Hapus semua data secara permanen?')) {
                 transactions = [];
                 saveData();
                 renderReceipt();
-                alert('Format berhasil. Disket kosong.');
             }
         }
 
-        // 8. Simpan ke Local Storage (biar ga ilang pas direfresh)
-        function saveData() {
-            localStorage.setItem('pixelFinanceData', JSON.stringify(transactions));
+        // Simpan Data
+        function saveData() { localStorage.setItem('pixelFinanceData', JSON.stringify(transactions)); }
+
+        // Fitur Export ke PDF
+        function downloadPDF() {
+            if(transactions.length === 0) return alert('Tidak ada data untuk di-download!');
+            
+            const element = document.getElementById('receipt-paper');
+            // Menghilangkan batasan tinggi (max-height) sementara biar semua data ter-print
+            element.style.maxHeight = 'none';
+            
+            const opt = {
+                margin:       0.5,
+                filename:     'Rekap_Keuangan_Pixel.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true }, // useCORS penting biar font retro & gambar kerender
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Kembalikan tinggi elemen seperti semula setelah selesai download
+                element.style.maxHeight = '400px';
+            });
         }
 
-        // 9. Live Clock di Taskbar
+        // Live Clock Taskbar
         setInterval(() => {
             const now = new Date();
             document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID');
