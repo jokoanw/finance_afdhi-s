@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Finance OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #008080; /* Warna khas Win95 */
+            font-family: 'VT323', monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            color: #000;
+        }
+
+        /* Desktop Icons */
+        .desktop {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .icon {
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            width: 80px;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .icon-img {
+            width: 50px;
+            height: 50px;
+            background: #c0c0c0;
+            border: 2px outset #fff;
+            margin: 0 auto 5px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .icon:active .icon-img { border: 2px inset #fff; }
+
+        /* Window Style (Retro UI) */
+        .window {
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #dfdfdf #000 #000 #dfdfdf;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+            position: absolute;
+            top: 50px;
+            left: 150px;
+            width: 350px;
+            display: none; /* Hidden by default */
+            z-index: 10;
+        }
+        .title-bar {
+            background: #000080;
+            color: white;
+            padding: 3px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+        .title-bar-btn {
+            background: #c0c0c0;
+            border: 2px outset #fff;
+            cursor: pointer;
+            font-family: 'VT323', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .title-bar-btn:active { border: 2px inset #fff; }
+
+        .window-content { padding: 15px; font-size: 1.2rem; }
+
+        /* Forms & Buttons */
+        input, select, button {
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input[type="text"], input[type="number"], select {
+            border: 2px inset #fff;
+            padding: 5px;
+            background: #fff;
+        }
+        .btn {
+            background: #c0c0c0;
+            border: 2px outset #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:active { border: 2px inset #fff; }
+
+        /* Struk Printer (Receipt) */
+        #receipt-window { width: 400px; left: 520px; }
+        .receipt-paper {
+            background: #fff;
+            border: 1px dashed #555;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace; /* Font struk asli */
+            font-size: 0.9rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .receipt-item {
+            margin-bottom: 15px;
+            border-bottom: 1px dotted #ccc;
+            padding-bottom: 10px;
+        }
+        .receipt-item img {
+            max-width: 100%;
+            margin-top: 5px;
+            filter: grayscale(100%) contrast(150%); /* Efek print kasir */
+            image-rendering: pixelated;
+        }
+        .total-row { font-weight: bold; font-size: 1.1rem; text-align: right; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="desktop">
+        <div class="icon" onclick="openWindow('input-window')">
+            <div class="icon-img">💾</div>
+            <span>Input Data</span>
+        </div>
+        <div class="icon" onclick="openWindow('receipt-window'); renderReceipt();">
+            <div class="icon-img">🖨️</div>
+            <span>Cetak Struk</span>
+        </div>
+    </div>
+
+    <div class="window" id="input-window">
+        <div class="title-bar">
+            <span>Input_Keuangan.exe</span>
+            <button class="title-bar-btn" onclick="closeWindow('input-window')">X</button>
+        </div>
+        <div class="window-content">
+            <form id="finance-form">
+                <label>Jenis Transaksi:</label>
+                <select id="type">
+                    <option value="pemasukan">Pemasukan (+)</option>
+                    <option value="pengeluaran">Pengeluaran (-)</option>
+                </select>
+
+                <label>Keterangan:</label>
+                <input type="text" id="desc" placeholder="Contoh: Beli Kopi" required>
+
+                <label>Nominal (Rp):</label>
+                <input type="number" id="amount" placeholder="25000" required>
+
+                <label>Upload Bukti (Foto):</label>
+                <input type="file" id="proof" accept="image/*" required>
+
+                <button type="submit" class="btn">Simpan ke Disket</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="window" id="receipt-window">
+        <div class="title-bar">
+            <span>Rekap_Mingguan.txt</span>
+            <button class="title-bar-btn" onclick="closeWindow('receipt-window')">X</button>
+        </div>
+        <div class="window-content">
+            <div class="receipt-paper" id="receipt-paper">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Array untuk menyimpan data transaksi
+        let transactions = [
+            // Dummy data awal biar struk ga kosong
+            {
+                date: new Date().toLocaleDateString('id-ID'),
+                time: new Date().toLocaleTimeString('id-ID'),
+                type: 'pengeluaran',
+                desc: 'Fotokopi modul Termodinamika',
+                amount: 15000,
+                proof: '' // Kosong untuk dummy
+            }
+        ];
+
+        // Fungsi buka/tutup jendela
+        function openWindow(id) { document.getElementById(id).style.display = 'block'; }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Fungsi menangani submit form
+        document.getElementById('finance-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const type = document.getElementById('type').value;
+            const desc = document.getElementById('desc').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const proofFile = document.getElementById('proof').files[0];
+            
+            const now = new Date();
+
+            // Membaca file gambar agar bisa ditampilkan langsung (Base64)
+            if (proofFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const newTx = {
+                        date: now.toLocaleDateString('id-ID'),
+                        time: now.toLocaleTimeString('id-ID'),
+                        type: type,
+                        desc: desc,
+                        amount: amount,
+                        proof: event.target.result // Gambar jadi base64 URL
+                    };
+                    transactions.push(newTx);
+                    alert('Data berhasil disimpan!');
+                    document.getElementById('finance-form').reset();
+                };
+                reader.readAsDataURL(proofFile);
+            }
+        });
+
+        // Fungsi merender struk
+        function renderReceipt() {
+            const paper = document.getElementById('receipt-paper');
+            let html = `
+                <div class="receipt-header">
+                    <h2>=== PIXEL FINANCE ===</h2>
+                    <p>Rekapitulasi Mingguan</p>
+                </div>
+            `;
+
+            let saldo = 0;
+
+            transactions.forEach(tx => {
+                const isIncome = tx.type === 'pemasukan';
+                saldo += isIncome ? tx.amount : -tx.amount;
+                const sign = isIncome ? '+' : '-';
+                
+                html += `
+                    <div class="receipt-item">
+                        <div>TGL : ${tx.date} | JAM: ${tx.time}</div>
+                        <div>KET : ${tx.desc}</div>
+                        <div>NOM : ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
+                        ${tx.proof ? `<img src="${tx.proof}" alt="Bukti Transaksi">` : '<div style="color: #888;">[NO IMAGE]</div>'}
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="receipt-header" style="margin-top: 20px;">
+                    <div class="total-row">TOTAL SALDO: Rp ${saldo.toLocaleString('id-ID')}</div>
+                    <p style="text-align: center; margin-top: 15px;">*** TERIMA KASIH ***</p>
+                </div>
+            `;
+
+            paper.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
