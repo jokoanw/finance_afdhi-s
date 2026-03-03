@@ -6,272 +6,385 @@
     <title>Pixel Finance OS</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
+        /* === GLOBAL SETTINGS === */
+        * { box-sizing: border-box; }
         body {
-            background-color: #008080; /* Warna khas Retro OS */
+            background-color: #008080; /* Classic Teal Desktop */
             font-family: 'VT323', monospace;
             margin: 0;
             padding: 0;
             height: 100vh;
             overflow: hidden;
-            display: flex;
             color: #000;
+            user-select: none; /* Biar teks ga gampang ke-blok pas nge-drag */
         }
 
-        /* Desktop Icons */
+        /* === DESKTOP & ICONS === */
         .desktop {
-            padding: 30px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 25px;
+            height: calc(100vh - 40px);
         }
         .icon {
+            width: 80px;
             text-align: center;
             color: white;
             cursor: pointer;
-            width: 80px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             text-shadow: 1px 1px 0 #000;
-            transition: transform 0.1s;
         }
-        .icon:active { transform: scale(0.95); }
         .icon-img {
             width: 50px;
             height: 50px;
-            background: #dfdfdf;
-            border: 2px solid;
-            border-color: #fff #888 #888 #fff;
             margin: 0 auto 5px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            font-size: 35px;
+            line-height: 50px;
+            transition: transform 0.1s;
         }
+        .icon:active .icon-img { transform: scale(0.9); }
+        .icon-label {
+            background: transparent;
+            padding: 2px 4px;
+        }
+        .icon:hover .icon-label { background: #000080; border: 1px dotted #fff; }
 
-        /* Window Style (Lebih rapi dan ke tengah) */
+        /* === RETRO WINDOW UI === */
         .window {
             background: #c0c0c0;
             border: 2px solid;
-            border-color: #fff #000 #000 #fff;
-            box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+            border-color: #dfdfdf #000 #000 #dfdfdf;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* Bikin posisi persis di tengah */
+            top: 20%;
+            left: 30%;
             width: 380px;
-            display: none; /* Disembunyikan dari awal */
+            display: none;
             z-index: 10;
         }
-        
         .title-bar {
             background: #000080;
             color: white;
-            padding: 4px 8px;
+            padding: 3px 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
+            font-size: 1.3rem;
+            cursor: grab;
         }
+        .title-bar:active { cursor: grabbing; }
         .title-bar-btn {
             background: #c0c0c0;
-            border: 2px solid;
-            border-color: #fff #000 #000 #fff;
+            border: 2px outset #fff;
             cursor: pointer;
             font-family: 'VT323', monospace;
             font-weight: bold;
-            font-size: 1rem;
-            padding: 0 5px;
-        }
-        .title-bar-btn:active { border-color: #000 #fff #fff #000; }
-
-        .window-content { padding: 20px; font-size: 1.2rem; }
-
-        /* Forms & Buttons yang dirapihkan */
-        .form-group {
+            width: 24px;
+            height: 24px;
             display: flex;
-            flex-direction: column;
-            margin-bottom: 12px;
+            align-items: center;
+            justify-content: center;
         }
-        .form-group label { margin-bottom: 4px; }
+        .title-bar-btn:active { border: 2px inset #fff; }
+        .window-content { padding: 15px; font-size: 1.2rem; }
+
+        /* === FORMS & INPUTS === */
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; }
         input, select, button {
             font-family: 'VT323', monospace;
             font-size: 1.2rem;
-            box-sizing: border-box;
+            width: 100%;
         }
         input[type="text"], input[type="number"], select {
-            border: 2px solid;
-            border-color: #888 #fff #fff #888;
+            border: 2px inset #fff;
             padding: 6px;
             background: #fff;
+            outline: none;
         }
         .btn {
             background: #c0c0c0;
-            border: 2px solid;
-            border-color: #fff #000 #000 #fff;
-            padding: 8px 10px;
+            border: 2px outset #fff;
+            padding: 8px;
             cursor: pointer;
-            width: 100%;
             margin-top: 10px;
             font-size: 1.3rem;
         }
-        .btn:active { border-color: #000 #fff #fff #000; }
+        .btn:active { border: 2px inset #fff; }
+        .btn-danger { color: #800000; font-weight: bold; }
 
-        /* Struk Printer (Receipt) */
+        /* Image Preview Box */
+        .preview-box {
+            width: 100%;
+            height: 80px;
+            border: 2px inset #fff;
+            background: #000;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ff00;
+            overflow: hidden;
+        }
+        .preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(150%);
+            image-rendering: pixelated;
+        }
+
+        /* === RECEIPT (STRUK KASIR) === */
+        #receipt-window { width: 420px; }
         .receipt-paper {
             background: #fff;
             border: 1px solid #888;
             padding: 15px;
-            max-height: 350px;
+            max-height: 400px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
-        .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .receipt-header { text-align: center; margin-bottom: 15px; border-bottom: 2px dashed #000; padding-bottom: 10px; }
         .receipt-item {
             margin-bottom: 15px;
             border-bottom: 1px dotted #ccc;
             padding-bottom: 10px;
+            position: relative;
         }
         .receipt-item img {
             max-width: 100%;
             margin-top: 8px;
             filter: grayscale(100%) contrast(150%);
             image-rendering: pixelated;
-            border: 1px solid #ddd;
+            border: 1px solid #000;
         }
-        .total-row { font-weight: bold; font-size: 1.1rem; text-align: right; margin-top: 10px; }
-        .empty-state { text-align: center; font-style: italic; color: #888; padding: 20px 0; }
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #000;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+        .delete-btn:hover { background: #000; color: #fff; }
+        .total-row { font-weight: bold; font-size: 1.2rem; text-align: right; margin-top: 10px; border-top: 2px dashed #000; padding-top: 10px;}
+
+        /* === TASKBAR === */
+        .taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: #c0c0c0;
+            border-top: 2px outset #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+            z-index: 100;
+        }
+        .start-btn {
+            background: #c0c0c0;
+            border: 2px outset #fff;
+            padding: 4px 10px;
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .start-btn:active { border: 2px inset #fff; }
+        .clock {
+            border: 2px inset #fff;
+            padding: 4px 10px;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
 
     <div class="desktop">
-        <div class="icon" onclick="openWindow('input-window')">
+        <div class="icon" onclick="openWindow('input-window')" ondblclick="openWindow('input-window')">
             <div class="icon-img">💾</div>
-            <span>Input_Data</span>
+            <span class="icon-label">Input.exe</span>
         </div>
         <div class="icon" onclick="openWindow('receipt-window'); renderReceipt();">
             <div class="icon-img">🖨️</div>
-            <span>Cetak_Struk</span>
+            <span class="icon-label">Rekap.txt</span>
+        </div>
+        <div class="icon" onclick="formatDisket()">
+            <div class="icon-img">🗑️</div>
+            <span class="icon-label">Format_Disk</span>
         </div>
     </div>
 
     <div class="window" id="input-window">
-        <div class="title-bar">
-            <span>Catatan_Keuangan.exe</span>
+        <div class="title-bar" onmousedown="dragWindow(event, 'input-window')">
+            <span>Input_Keuangan.exe</span>
             <button class="title-bar-btn" onclick="closeWindow('input-window')">X</button>
         </div>
         <div class="window-content">
             <form id="finance-form">
                 <div class="form-group">
-                    <label>Jenis Transaksi:</label>
+                    <label>Tipe Transaksi:</label>
                     <select id="type">
                         <option value="pemasukan">Pemasukan (+)</option>
                         <option value="pengeluaran">Pengeluaran (-)</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Keterangan:</label>
-                    <input type="text" id="desc" placeholder="Contoh: Beli Kopi" required>
+                    <input type="text" id="desc" placeholder="Contoh: Beli Kopi" autocomplete="off" required>
                 </div>
-
                 <div class="form-group">
                     <label>Nominal (Rp):</label>
                     <input type="number" id="amount" placeholder="25000" required>
                 </div>
-
                 <div class="form-group">
-                    <label>Upload Bukti (Foto):</label>
-                    <input type="file" id="proof" accept="image/*" required>
+                    <label>Bukti Transaksi:</label>
+                    <input type="file" id="proof" accept="image/*" onchange="previewImage(event)">
+                    <div class="preview-box" id="preview-box">NO SIGNAL</div>
                 </div>
-
-                <button type="submit" class="btn">Simpan ke Disket</button>
+                <button type="submit" class="btn">Write to Disk >></button>
             </form>
         </div>
     </div>
 
     <div class="window" id="receipt-window">
-        <div class="title-bar">
+        <div class="title-bar" onmousedown="dragWindow(event, 'receipt-window')">
             <span>Rekap_Mingguan.txt</span>
             <button class="title-bar-btn" onclick="closeWindow('receipt-window')">X</button>
         </div>
         <div class="window-content">
             <div class="receipt-paper" id="receipt-paper">
                 </div>
+            <button class="btn btn-danger" onclick="formatDisket()">Hapus Semua Data</button>
         </div>
     </div>
 
+    <div class="taskbar">
+        <button class="start-btn">💻 Start</button>
+        <div class="clock" id="clock">00:00:00</div>
+    </div>
+
     <script>
-        // Array bener-bener kosong sekarang!
-        let transactions = [];
+        // Database Lokal Sementara
+        let transactions = JSON.parse(localStorage.getItem('pixelFinanceData')) || [];
+        let draggedWindow = null;
 
-        // Fungsi buka/tutup jendela (otomatis nutup jendela lain biar ga numpuk)
+        // 1. Fungsi Buka Tutup Jendela (dengan efek Z-index agar yang diklik pindah ke depan)
+        let zIndexCounter = 10;
         function openWindow(id) { 
-            document.querySelectorAll('.window').forEach(win => win.style.display = 'none');
-            document.getElementById(id).style.display = 'block'; 
+            const win = document.getElementById(id);
+            win.style.display = 'block'; 
+            win.style.zIndex = ++zIndexCounter;
         }
-        function closeWindow(id) { 
-            document.getElementById(id).style.display = 'none'; 
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+
+        // 2. Fitur Drag Jendela
+        function dragWindow(e, windowId) {
+            draggedWindow = document.getElementById(windowId);
+            draggedWindow.style.zIndex = ++zIndexCounter;
+            
+            let offsetX = e.clientX - draggedWindow.getBoundingClientRect().left;
+            let offsetY = e.clientY - draggedWindow.getBoundingClientRect().top;
+
+            function mouseMoveHandler(e) {
+                draggedWindow.style.left = (e.clientX - offsetX) + 'px';
+                draggedWindow.style.top = (e.clientY - offsetY) + 'px';
+            }
+            function mouseUpHandler() {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+            }
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
         }
 
-        // Fungsi menyimpan data
+        // 3. Preview Gambar Bukti Transaksi
+        let currentImageBase64 = '';
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const box = document.getElementById('preview-box');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImageBase64 = e.target.result;
+                    box.innerHTML = `<img src="${currentImageBase64}">`;
+                }
+                reader.readAsDataURL(file);
+            } else {
+                currentImageBase64 = '';
+                box.innerHTML = "NO SIGNAL";
+            }
+        }
+
+        // 4. Submit Form Data
         document.getElementById('finance-form').addEventListener('submit', function(e) {
             e.preventDefault();
-
             const type = document.getElementById('type').value;
             const desc = document.getElementById('desc').value;
             const amount = parseInt(document.getElementById('amount').value);
-            const proofFile = document.getElementById('proof').files[0];
             const now = new Date();
 
-            if (proofFile) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const newTx = {
-                        date: now.toLocaleDateString('id-ID'),
-                        time: now.toLocaleTimeString('id-ID'),
-                        type: type,
-                        desc: desc,
-                        amount: amount,
-                        proof: event.target.result // Gambar jadi base64 URL
-                    };
-                    transactions.push(newTx);
-                    
-                    alert('Data berhasil disimpan ke Disket!');
-                    document.getElementById('finance-form').reset();
-                    closeWindow('input-window'); // Otomatis tutup jendela setelah simpan
-                };
-                reader.readAsDataURL(proofFile);
+            const newTx = {
+                id: Date.now(), // ID unik untuk fitur hapus
+                date: now.toLocaleDateString('id-ID'),
+                time: now.toLocaleTimeString('id-ID'),
+                type: type,
+                desc: desc,
+                amount: amount,
+                proof: currentImageBase64
+            };
+
+            transactions.push(newTx);
+            saveData();
+            
+            alert('Data tertulis ke disket!');
+            document.getElementById('finance-form').reset();
+            document.getElementById('preview-box').innerHTML = "NO SIGNAL";
+            currentImageBase64 = '';
+            
+            // Render ulang struk kalau jendelanya lagi kebuka
+            if(document.getElementById('receipt-window').style.display === 'block') {
+                renderReceipt();
             }
         });
 
-        // Fungsi merender struk
+        // 5. Render Struk (Cetak Struk)
         function renderReceipt() {
             const paper = document.getElementById('receipt-paper');
             let html = `
                 <div class="receipt-header">
                     <h2>=== PIXEL FINANCE ===</h2>
-                    <p>Rekapitulasi Mingguan</p>
+                    <p>SYSTEM REKAP v2.0</p>
                 </div>
             `;
 
             let saldo = 0;
 
             if (transactions.length === 0) {
-                html += `<div class="empty-state">Belum ada transaksi minggu ini.</div>`;
+                html += `<div style="text-align:center; padding: 20px 0;">[ DISKET KOSONG ]</div>`;
             } else {
-                transactions.forEach(tx => {
+                transactions.forEach((tx, index) => {
                     const isIncome = tx.type === 'pemasukan';
                     saldo += isIncome ? tx.amount : -tx.amount;
                     const sign = isIncome ? '+' : '-';
                     
                     html += `
                         <div class="receipt-item">
-                            <div>TGL : ${tx.date} | JAM: ${tx.time}</div>
-                            <div>KET : ${tx.desc}</div>
-                            <div>NOM : ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
+                            <button class="delete-btn" onclick="deleteItem(${tx.id})" title="Hapus Transaksi Ini">X</button>
+                            <div>TGL: ${tx.date} | ${tx.time}</div>
+                            <div>KET: ${tx.desc}</div>
+                            <div>NOM: ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
                             ${tx.proof ? `<img src="${tx.proof}" alt="Bukti">` : ''}
                         </div>
                     `;
@@ -279,14 +392,46 @@
             }
 
             html += `
-                <div class="receipt-header" style="margin-top: 20px;">
-                    <div class="total-row">TOTAL SALDO: Rp ${saldo.toLocaleString('id-ID')}</div>
-                    <p style="text-align: center; margin-top: 15px;">*** END OF RECORD ***</p>
-                </div>
+                <div class="total-row">SALDO AKHIR: Rp ${saldo.toLocaleString('id-ID')}</div>
+                <div style="text-align:center; margin-top:20px;">*** END OF RECORD ***</div>
             `;
-
             paper.innerHTML = html;
         }
+
+        // 6. Fitur Hapus Per Item
+        function deleteItem(id) {
+            if(confirm('Hapus transaksi ini dari sistem?')) {
+                transactions = transactions.filter(tx => tx.id !== id);
+                saveData();
+                renderReceipt();
+            }
+        }
+
+        // 7. Fitur Format Disket (Hapus Semua)
+        function formatDisket() {
+            if(transactions.length === 0) {
+                alert('Disket sudah kosong!');
+                return;
+            }
+            if(confirm('WARNING: Format Disket? Semua data keuangan minggu ini akan hilang permanen!')) {
+                transactions = [];
+                saveData();
+                renderReceipt();
+                alert('Format berhasil. Disket kosong.');
+            }
+        }
+
+        // 8. Simpan ke Local Storage (biar ga ilang pas direfresh)
+        function saveData() {
+            localStorage.setItem('pixelFinanceData', JSON.stringify(transactions));
+        }
+
+        // 9. Live Clock di Taskbar
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID');
+        }, 1000);
+
     </script>
 </body>
 </html>
