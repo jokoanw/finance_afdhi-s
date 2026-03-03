@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #008080; /* Warna khas Win95 */
+            background-color: #008080; /* Warna khas Retro OS */
             font-family: 'VT323', monospace;
             margin: 0;
             padding: 0;
@@ -19,97 +19,111 @@
 
         /* Desktop Icons */
         .desktop {
-            padding: 20px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 30px;
         }
         .icon {
             text-align: center;
             color: white;
             cursor: pointer;
             width: 80px;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             text-shadow: 1px 1px 0 #000;
+            transition: transform 0.1s;
         }
+        .icon:active { transform: scale(0.95); }
         .icon-img {
             width: 50px;
             height: 50px;
-            background: #c0c0c0;
-            border: 2px outset #fff;
+            background: #dfdfdf;
+            border: 2px solid;
+            border-color: #fff #888 #888 #fff;
             margin: 0 auto 5px auto;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
         }
-        .icon:active .icon-img { border: 2px inset #fff; }
 
-        /* Window Style (Retro UI) */
+        /* Window Style (Lebih rapi dan ke tengah) */
         .window {
             background: #c0c0c0;
             border: 2px solid;
-            border-color: #dfdfdf #000 #000 #dfdfdf;
-            box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+            border-color: #fff #000 #000 #fff;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
             position: absolute;
-            top: 50px;
-            left: 150px;
-            width: 350px;
-            display: none; /* Hidden by default */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Bikin posisi persis di tengah */
+            width: 380px;
+            display: none; /* Disembunyikan dari awal */
             z-index: 10;
         }
+        
         .title-bar {
             background: #000080;
             color: white;
-            padding: 3px 5px;
+            padding: 4px 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 1.2rem;
+            letter-spacing: 1px;
         }
         .title-bar-btn {
             background: #c0c0c0;
-            border: 2px outset #fff;
+            border: 2px solid;
+            border-color: #fff #000 #000 #fff;
             cursor: pointer;
             font-family: 'VT323', monospace;
             font-weight: bold;
             font-size: 1rem;
+            padding: 0 5px;
         }
-        .title-bar-btn:active { border: 2px inset #fff; }
+        .title-bar-btn:active { border-color: #000 #fff #fff #000; }
 
-        .window-content { padding: 15px; font-size: 1.2rem; }
+        .window-content { padding: 20px; font-size: 1.2rem; }
 
-        /* Forms & Buttons */
+        /* Forms & Buttons yang dirapihkan */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+        }
+        .form-group label { margin-bottom: 4px; }
         input, select, button {
             font-family: 'VT323', monospace;
             font-size: 1.2rem;
-            margin-bottom: 10px;
-            width: 100%;
             box-sizing: border-box;
         }
         input[type="text"], input[type="number"], select {
-            border: 2px inset #fff;
-            padding: 5px;
+            border: 2px solid;
+            border-color: #888 #fff #fff #888;
+            padding: 6px;
             background: #fff;
         }
         .btn {
             background: #c0c0c0;
-            border: 2px outset #fff;
-            padding: 5px 10px;
+            border: 2px solid;
+            border-color: #fff #000 #000 #fff;
+            padding: 8px 10px;
             cursor: pointer;
+            width: 100%;
             margin-top: 10px;
+            font-size: 1.3rem;
         }
-        .btn:active { border: 2px inset #fff; }
+        .btn:active { border-color: #000 #fff #fff #000; }
 
         /* Struk Printer (Receipt) */
-        #receipt-window { width: 400px; left: 520px; }
         .receipt-paper {
             background: #fff;
-            border: 1px dashed #555;
+            border: 1px solid #888;
             padding: 15px;
-            height: 300px;
+            max-height: 350px;
             overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace; /* Font struk asli */
+            font-family: 'Courier New', Courier, monospace;
             font-size: 0.9rem;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
@@ -121,11 +135,13 @@
         }
         .receipt-item img {
             max-width: 100%;
-            margin-top: 5px;
-            filter: grayscale(100%) contrast(150%); /* Efek print kasir */
+            margin-top: 8px;
+            filter: grayscale(100%) contrast(150%);
             image-rendering: pixelated;
+            border: 1px solid #ddd;
         }
         .total-row { font-weight: bold; font-size: 1.1rem; text-align: right; margin-top: 10px; }
+        .empty-state { text-align: center; font-style: italic; color: #888; padding: 20px 0; }
     </style>
 </head>
 <body>
@@ -133,35 +149,43 @@
     <div class="desktop">
         <div class="icon" onclick="openWindow('input-window')">
             <div class="icon-img">💾</div>
-            <span>Input Data</span>
+            <span>Input_Data</span>
         </div>
         <div class="icon" onclick="openWindow('receipt-window'); renderReceipt();">
             <div class="icon-img">🖨️</div>
-            <span>Cetak Struk</span>
+            <span>Cetak_Struk</span>
         </div>
     </div>
 
     <div class="window" id="input-window">
         <div class="title-bar">
-            <span>Input_Keuangan.exe</span>
+            <span>Catatan_Keuangan.exe</span>
             <button class="title-bar-btn" onclick="closeWindow('input-window')">X</button>
         </div>
         <div class="window-content">
             <form id="finance-form">
-                <label>Jenis Transaksi:</label>
-                <select id="type">
-                    <option value="pemasukan">Pemasukan (+)</option>
-                    <option value="pengeluaran">Pengeluaran (-)</option>
-                </select>
+                <div class="form-group">
+                    <label>Jenis Transaksi:</label>
+                    <select id="type">
+                        <option value="pemasukan">Pemasukan (+)</option>
+                        <option value="pengeluaran">Pengeluaran (-)</option>
+                    </select>
+                </div>
 
-                <label>Keterangan:</label>
-                <input type="text" id="desc" placeholder="Contoh: Beli Kopi" required>
+                <div class="form-group">
+                    <label>Keterangan:</label>
+                    <input type="text" id="desc" placeholder="Contoh: Beli Kopi" required>
+                </div>
 
-                <label>Nominal (Rp):</label>
-                <input type="number" id="amount" placeholder="25000" required>
+                <div class="form-group">
+                    <label>Nominal (Rp):</label>
+                    <input type="number" id="amount" placeholder="25000" required>
+                </div>
 
-                <label>Upload Bukti (Foto):</label>
-                <input type="file" id="proof" accept="image/*" required>
+                <div class="form-group">
+                    <label>Upload Bukti (Foto):</label>
+                    <input type="file" id="proof" accept="image/*" required>
+                </div>
 
                 <button type="submit" class="btn">Simpan ke Disket</button>
             </form>
@@ -180,24 +204,19 @@
     </div>
 
     <script>
-        // Array untuk menyimpan data transaksi
-        let transactions = [
-            // Dummy data awal biar struk ga kosong
-            {
-                date: new Date().toLocaleDateString('id-ID'),
-                time: new Date().toLocaleTimeString('id-ID'),
-                type: 'pengeluaran',
-                desc: 'Fotokopi modul Termodinamika',
-                amount: 15000,
-                proof: '' // Kosong untuk dummy
-            }
-        ];
+        // Array bener-bener kosong sekarang!
+        let transactions = [];
 
-        // Fungsi buka/tutup jendela
-        function openWindow(id) { document.getElementById(id).style.display = 'block'; }
-        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
+        // Fungsi buka/tutup jendela (otomatis nutup jendela lain biar ga numpuk)
+        function openWindow(id) { 
+            document.querySelectorAll('.window').forEach(win => win.style.display = 'none');
+            document.getElementById(id).style.display = 'block'; 
+        }
+        function closeWindow(id) { 
+            document.getElementById(id).style.display = 'none'; 
+        }
 
-        // Fungsi menangani submit form
+        // Fungsi menyimpan data
         document.getElementById('finance-form').addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -205,10 +224,8 @@
             const desc = document.getElementById('desc').value;
             const amount = parseInt(document.getElementById('amount').value);
             const proofFile = document.getElementById('proof').files[0];
-            
             const now = new Date();
 
-            // Membaca file gambar agar bisa ditampilkan langsung (Base64)
             if (proofFile) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
@@ -221,8 +238,10 @@
                         proof: event.target.result // Gambar jadi base64 URL
                     };
                     transactions.push(newTx);
-                    alert('Data berhasil disimpan!');
+                    
+                    alert('Data berhasil disimpan ke Disket!');
                     document.getElementById('finance-form').reset();
+                    closeWindow('input-window'); // Otomatis tutup jendela setelah simpan
                 };
                 reader.readAsDataURL(proofFile);
             }
@@ -240,25 +259,29 @@
 
             let saldo = 0;
 
-            transactions.forEach(tx => {
-                const isIncome = tx.type === 'pemasukan';
-                saldo += isIncome ? tx.amount : -tx.amount;
-                const sign = isIncome ? '+' : '-';
-                
-                html += `
-                    <div class="receipt-item">
-                        <div>TGL : ${tx.date} | JAM: ${tx.time}</div>
-                        <div>KET : ${tx.desc}</div>
-                        <div>NOM : ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
-                        ${tx.proof ? `<img src="${tx.proof}" alt="Bukti Transaksi">` : '<div style="color: #888;">[NO IMAGE]</div>'}
-                    </div>
-                `;
-            });
+            if (transactions.length === 0) {
+                html += `<div class="empty-state">Belum ada transaksi minggu ini.</div>`;
+            } else {
+                transactions.forEach(tx => {
+                    const isIncome = tx.type === 'pemasukan';
+                    saldo += isIncome ? tx.amount : -tx.amount;
+                    const sign = isIncome ? '+' : '-';
+                    
+                    html += `
+                        <div class="receipt-item">
+                            <div>TGL : ${tx.date} | JAM: ${tx.time}</div>
+                            <div>KET : ${tx.desc}</div>
+                            <div>NOM : ${sign} Rp ${tx.amount.toLocaleString('id-ID')}</div>
+                            ${tx.proof ? `<img src="${tx.proof}" alt="Bukti">` : ''}
+                        </div>
+                    `;
+                });
+            }
 
             html += `
                 <div class="receipt-header" style="margin-top: 20px;">
                     <div class="total-row">TOTAL SALDO: Rp ${saldo.toLocaleString('id-ID')}</div>
-                    <p style="text-align: center; margin-top: 15px;">*** TERIMA KASIH ***</p>
+                    <p style="text-align: center; margin-top: 15px;">*** END OF RECORD ***</p>
                 </div>
             `;
 
